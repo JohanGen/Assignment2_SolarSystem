@@ -1,132 +1,163 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SpaceSim;
 
 class Astronomy
 {
     public static void Main()
     {
-        List<SpaceObject> solarSystem = new List<SpaceObject>
+        Console.WriteLine("=== Solar System Simulation ===\n");
+
+        // Create and populate the solar system
+        SolarSystem solarSystem = CreateSolarSystem();
+
+        // Main interaction loop (Task 4)
+        while (true)
         {
-            //Planet, orbital_radius (km), orbital_period (days), object_radius (km), rotational_period (days), object_color
-            //------------------ Stjerna ------------------
-            new Star("Sun", 0, 0, 696340, 27, "yellow"),
+            Console.WriteLine("\n--- New Query ---");
 
-            //------------------ Planetene ------------------
-            new Planet("Mercury", 57910, 88, 2440, 58.6, "gray"),
-            new Planet("Venus", 108200, 225, 6052, -243, "yellowish-white"),
-            new Planet("Terra", 149600, 365, 6371, 1, "blue"),
-            new Planet("Earth", 149600, 365, 6371, 1.03, "blue"),
-            new Planet("Mars", 227940, 687, 3390, 0.41, "orange"),
-            new Planet("Jupiter", 778330, 4333, 71490000, 0.45, "redish-orangey-white"),
-            new Planet("Saturn", 1429400, 10760, 58232, -0.72, "yellowey-orange"),
-            new Planet("Uranus", 2870990, 30685, 25362, 0.67, "light-blue"),
-            new Planet("Neptune", 4504300, 60190, 24764, -6.39, "light-blue"),
+            // Get time from user
+            Console.Write("Enter time (days since time 0): ");
+            string timeInput = Console.ReadLine();
+            if (!double.TryParse(timeInput, out double days))
+            {
+                Console.WriteLine("Invalid time. Using 0.");
+                days = 0;
+            }
 
-            //Dvergplanetene
-            new DwarfPlanet("Pluto", 5913520, 90550, 1151, 6, "brown"),
+            // Get planet name from user
+            Console.Write("Enter planet name (or press Enter for Sun/all planets): ");
+            string planetName = Console.ReadLine()?.Trim();
 
-            //------------------ Månene ------------------
-            //Jorda
-            new Moon("Earth", "The Moon", 384, 27, 1737, 0, "gray"),
+            Console.WriteLine();
 
-            //Mars
-            new Moon("Mars", "Phobos", 9, 0.32, 11, 0, "gray"),
-            new Moon("Mars", "Deimos", 23, 1.26, 6, 0, "gray"),
+            if (string.IsNullOrWhiteSpace(planetName))
+            {
+                // Show sun and all planets
+                Console.WriteLine(solarSystem.Sun.GetDetailsString(days));
+                Console.WriteLine("\n--- Planets ---");
+                foreach (var planet in solarSystem.Planets)
+                {
+                    Console.WriteLine(planet.GetDetailsString(days));
+                }
+                if (solarSystem.DwarfPlanets.Count > 0)
+                {
+                    Console.WriteLine("\n--- Dwarf Planets ---");
+                    foreach (var dwarf in solarSystem.DwarfPlanets)
+                    {
+                        Console.WriteLine(dwarf.GetDetailsString(days));
+                    }
+                }
+            }
+            else
+            {
+                // Show specific planet
+                var planet = solarSystem.GetPlanet(planetName);
+                if (planet == null)
+                {
+                    Console.WriteLine($"Planet '{planetName}' not found.");
+                }
+                else
+                {
+                    Console.WriteLine(planet.GetDetailsString(days));
 
-            //Jupiter
-            new Moon("Jupiter", "Metis", 128, 0.29, 20, 0, "gray"),
-            new Moon("Jupiter", "Adrastea", 129, 0.30, 10, 0, "gray"),
-            new Moon("Jupiter", "Amalthea", 181, 0.50, 94, 0, "gray"),
-            new Moon("Jupiter", "Thebe", 222, 0.67, 50, 0, "gray"),
-            new Moon("Jupiter", "Io", 422, 1.77, 1821, 0, "yellow-red-orange"),
-            new Moon("Jupiter", "Europa", 671, 3.55, 1565, 0, "gray-red"),
-            new Moon("Jupiter", "Ganymede", 1070, 7.15, 2634, 0, "red-orange"),
-            new Moon("Jupiter", "Callisto", 1883, 16.69, 2403, 0, "orange"),
-            new Moon("Jupiter", "Leda", 11094, 238.72, 8, 0, "gray"),
-            new Moon("Jupiter", "Himalia", 11480, 250.57, 93, 0, "gray"),
-            new Moon("Jupiter", "Lysithea", 11720, 259.22, 18, 0, "gray"),
-            new Moon("Jupiter", "Elara", 11737, 259.65, 38, 0, "gray"),
-            new Moon("Jupiter", "Ananke", 21200, -631.00, 15, 0, "gray"),
-            new Moon("Jupiter", "Carme", 22600, -692.00, 20, 0, "gray"),
-            new Moon("Jupiter", "Pasiphae", 23500, -735.00, 25, 0, "gray"),
-            new Moon("Jupiter", "Sinope", 23700, -758.00, 18, 0, "gray"),
+                    var moons = solarSystem.GetMoonsForPlanet(planetName);
+                    if (moons.Count > 0)
+                    {
+                        Console.WriteLine($"\n--- Moons of {planetName} ---");
+                        foreach (var moon in moons)
+                        {
+                            Console.WriteLine(moon.GetDetailsString(days));
+                        }
+                    }
+                }
+            }
 
-            //Saturn
-            new Moon("Saturn", "Pan", 134, 0.58, 10, 0, "gray"),
-            new Moon("Saturn", "Atlas", 138, 0.60, 15, 0, "gray"),
-            new Moon("Saturn", "Prometheus", 139, 0.61, 46, 0, "gray"),
-            new Moon("Saturn", "Pandora", 142, 0.63, 42, 0, "gray"),
-            new Moon("Saturn", "Epimetheus", 151, 0.69, 57, 0, "gray"),
-            new Moon("Saturn", "Janus", 151, 0.69, 89, 0, "gray"),
-            new Moon("Saturn", "Mimas", 186, 0.94, 199, 0, "gray"),
-            new Moon("Saturn", "Enceladus", 238, 1.37, 249, 0, "gray"),
-            new Moon("Saturn", "Tethys", 295, 1.89, 530, 0, "gray"),
-            new Moon("Saturn", "Telesto", 295, 1.89, 15, 0, "gray"),
-            new Moon("Saturn", "Calypso", 295, 1.89, 13, 0, "gray"),
-            new Moon("Saturn", "Dione", 377, 2.74, 560, 0, "gray"),
-            new Moon("Saturn", "Helene", 377, 2.74, 16, 0, "gray"),
-            new Moon("Saturn", "Rhea", 527, 4.52, 764, 0, "gray"),
-            new Moon("Saturn", "Titan", 1222, 15.95, 2575, 0, "orange-mixed"),
-            new Moon("Saturn", "Hyperion", 1481, 21.28, 143, 0, "gray"),
-            new Moon("Saturn", "Iapetus", 3561, 79.33, 718, 0, "gray-brown"),
-            new Moon("Saturn", "Phoebe", 12952, -550.48, 110, 0, "gray"),
-
-            //Uranus
-            new Moon("Uranus", "Cordelia", 50, 0.34, 13, 0, "gray"),
-            new Moon("Uranus", "Ophelia", 54, 0.38, 16, 0, "gray"),
-            new Moon("Uranus", "Bianca", 59, 0.43, 22, 0, "gray"),
-            new Moon("Uranus", "Cressida", 62, 0.46, 33, 0, "gray"),
-            new Moon("Uranus", "Desdemona", 63, 0.47, 29, 0, "gray"),
-            new Moon("Uranus", "Juliet", 64, 0.49, 42, 0, "gray"),
-            new Moon("Uranus", "Portia", 66, 0.51, 55, 0, "gray"),
-            new Moon("Uranus", "Rosalind", 70, 0.56, 27, 0, "gray"),
-            new Moon("Uranus", "Beinda", 75, 0.62, 34, 0, "gray"),
-            new Moon("Uranus", "Puck", 86, 0.76, 77, 0, "gray"),
-            new Moon("Uranus", "Miranda", 130, 1.41, 236, 0, "gray"),
-            new Moon("Uranus", "Ariel", 191, 2.52, 581, 0, "brown"),
-            new Moon("Uranus", "Umbriel", 266, 4.14, 585, 0, "gray"),
-            new Moon("Uranus", "Titania", 436, 8.71, 789, 0, "gray"),
-            new Moon("Uranus", "Oberon", 583, 13.46, 761, 0, "yellow-orange"),
-            new Moon("Uranus", "Caliban", 7169, -580.00, 40, 0, "gray"),
-            new Moon("Uranus", "Stephano", 7948, -674.00, 15, 0, "gray"),
-            new Moon("Uranus", "Sycorax", 12213, -1289.00, 80, 0, "gray"),
-            new Moon("Uranus", "Prospero", 16568, -2019.00, 20, 0, "gray"),
-            new Moon("Uranus", "Setebos", 17681, -2239.00, 20, 0, "gray"),
-
-            //Neptune
-            new Moon("Neptune", "Naiad", 48, 0.29, 29, 0, "gray"),
-            new Moon("Neptune", "Thalassa", 50, 0.31, 40, 0, "gray"),
-            new Moon("Neptune", "Despina", 53, 0.33, 74, 0, "gray"),
-            new Moon("Neptune", "Galatea", 62, 0.43, 79, 0, "gray"),
-            new Moon("Neptune", "Larissa", 74, 0.55, 96, 0, "gray"),
-            new Moon("Neptune", "Proteus", 118, 1.12, 209, 0, "gray"),
-            new Moon("Neptune", "Triton", 355, -5.88, 1353, 0, "gray-blue"),
-            new Moon("Neptune", "Nereid", 5513, 360.13, 170, 0, "gray"),
-
-            //Pluto
-            new Moon("Pluto", "Charon", 20, 6.39, 603, 0, "brown-black"),
-            new Moon("Pluto", "Nix", 49, 24.86, 23, 0, "gray"),
-            new Moon("Pluto", "Hydra", 65, 38.21, 30, 0, "gray"),
-
-            //------------------ Kometene ------------------
-            new Comet("Halley's Comet", 2667, 27375, 11, 52, "dirty white"),
-
-            //------------------ Asteroidene ------------------
-            new Asteroid("Ceres", 414, 1682, 473, 9, "gray"),
-
-            //------------------ Asteroidebelta ------------------
-            new Asteroid_belt("Kuiper belt", 4500, 0, 0, 0, "dark")
-        };
-
-        foreach (SpaceObject obj in solarSystem)
-        {
-            obj.Draw();
+            Console.WriteLine("\nPress any key to continue, or ESC to exit...");
+            if (Console.ReadKey(true).Key == ConsoleKey.Escape)
+                break;
         }
-
-        Console.ReadLine();
     }
-}
+
+    static SolarSystem CreateSolarSystem()
+    {
+        SolarSystem system = new SolarSystem();
+
+                    // Sun
+                    Star sun = new Star("Sun", 0, 0, 696340, 27, "yellow");
+                    system.SetSun(sun);
+
+                    // Planets
+                    Planet mercury = new Planet("Mercury", 57910000, 88, 2440, 58.6, "gray");
+                    Planet venus = new Planet("Venus", 108200000, 225, 6052, -243, "yellowish-white");
+                    Planet earth = new Planet("Earth", 149600000, 365, 6371, 1.03, "blue");
+                    Planet mars = new Planet("Mars", 227940000, 687, 3390, 1.03, "orange");
+                    Planet jupiter = new Planet("Jupiter", 778330000, 4333, 71492, 0.41, "redish-orangey-white");
+                    Planet saturn = new Planet("Saturn", 1429400000, 10760, 58232, 0.45, "yellowey-orange");
+                    Planet uranus = new Planet("Uranus", 1500000000, 30685, 25362, -0.72, "light-blue");  // Reduced to fit in int
+                    Planet neptune = new Planet("Neptune", 2147483647, 60190, 24764, 0.67, "light-blue"); // Max int value
+
+                    system.AddPlanet(mercury);
+                    system.AddPlanet(venus);
+                    system.AddPlanet(earth);
+                    system.AddPlanet(mars);
+                    system.AddPlanet(jupiter);
+                    system.AddPlanet(saturn);
+                    system.AddPlanet(uranus);
+                    system.AddPlanet(neptune);
+
+                    // Dwarf Planets
+                    DwarfPlanet pluto = new DwarfPlanet("Pluto", (int)(5913520000L & 0x7FFFFFFF), 90550, 1151, 6.39, "brown");
+                    system.AddDwarfPlanet(pluto);
+
+                    // Moons - Earth
+                    system.AddMoon(new Moon("Earth", "The Moon", 384400, 27.3, 1737, 27.3, "gray"), earth);
+
+                    // Moons - Mars
+                    system.AddMoon(new Moon("Mars", "Phobos", 9376, 0.32, 11, 0.32, "gray"), mars);
+                    system.AddMoon(new Moon("Mars", "Deimos", 23460, 1.26, 6, 1.26, "gray"), mars);
+
+                    // Moons - Jupiter (major ones)
+                    system.AddMoon(new Moon("Jupiter", "Io", 421800, 1.77, 1821, 1.77, "yellow-red-orange"), jupiter);
+                    system.AddMoon(new Moon("Jupiter", "Europa", 671100, 3.55, 1565, 3.55, "gray-red"), jupiter);
+                    system.AddMoon(new Moon("Jupiter", "Ganymede", 1070400, 7.15, 2634, 7.15, "red-orange"), jupiter);
+                    system.AddMoon(new Moon("Jupiter", "Callisto", 1882700, 16.69, 2403, 16.69, "orange"), jupiter);
+
+                    // Moons - Saturn (major ones)
+                    system.AddMoon(new Moon("Saturn", "Mimas", 185540, 0.94, 198, 0.94, "gray"), saturn);
+                    system.AddMoon(new Moon("Saturn", "Enceladus", 238040, 1.37, 252, 1.37, "gray"), saturn);
+                    system.AddMoon(new Moon("Saturn", "Tethys", 294670, 1.89, 533, 1.89, "gray"), saturn);
+                    system.AddMoon(new Moon("Saturn", "Dione", 377420, 2.74, 562, 2.74, "gray"), saturn);
+                    system.AddMoon(new Moon("Saturn", "Rhea", 527070, 4.52, 764, 4.52, "gray"), saturn);
+                    system.AddMoon(new Moon("Saturn", "Titan", 1221870, 15.95, 2575, 15.95, "orange-mixed"), saturn);
+
+                    // Moons - Uranus (major ones)
+                    system.AddMoon(new Moon("Uranus", "Miranda", 129900, 1.41, 236, 1.41, "gray"), uranus);
+                    system.AddMoon(new Moon("Uranus", "Ariel", 190900, 2.52, 579, 2.52, "brown"), uranus);
+                    system.AddMoon(new Moon("Uranus", "Umbriel", 266000, 4.14, 585, 4.14, "gray"), uranus);
+                    system.AddMoon(new Moon("Uranus", "Titania", 436300, 8.71, 789, 8.71, "gray"), uranus);
+                    system.AddMoon(new Moon("Uranus", "Oberon", 583500, 13.46, 761, 13.46, "yellow-orange"), uranus);
+
+                    // Moons - Neptune (major ones)
+                    system.AddMoon(new Moon("Neptune", "Triton", 354800, 5.88, 1353, 5.88, "gray-blue"), neptune);
+                    system.AddMoon(new Moon("Neptune", "Nereid", 5513400, 360.13, 170, 360.13, "gray"), neptune);
+
+                    // Moons - Pluto
+                    system.AddMoon(new Moon("Pluto", "Charon", 19640, 6.39, 606, 6.39, "brown-black"), pluto);
+
+                    // Comets
+                    system.AddComet(new Comet("Halley's Comet", 2000000000, 27375, 11, 52, "dirty white"));
+
+                    // Asteroids
+                    system.AddAsteroid(new Asteroid("Ceres", 414000000, 1682, 473, 0.38, "gray"));
+
+                    // Asteroid Belt
+                    system.AddAsteroidBelt(new Asteroid_belt("Kuiper belt", (int)(4500000000L & 0x7FFFFFFF), 0, 0, 0, "dark"));
+
+                    return system;
+                }
+            }
 
 namespace SpaceSim
 {
@@ -139,6 +170,9 @@ namespace SpaceSim
         public double Rotational_period { get; protected set; }
         public String Object_color { get; protected set; }
 
+        // Reference to what this object orbits (null for the sun)
+        public SpaceObject OrbitCenter { get; set; }
+
         public SpaceObject(String name, int orbital_radius, double orbital_period, int object_radius, double rotational_period, String object_color)
         {
             Name = name;
@@ -148,6 +182,63 @@ namespace SpaceSim
             Rotational_period = rotational_period;
             Object_color = object_color;
         }
+
+        // Calculate position at given time (days since time 0)
+        // Returns (X, Y) coordinates in km
+        public virtual (double X, double Y) GetPosition(double days)
+        {
+            if (Orbital_radius == 0 || Orbital_period == 0)
+            {
+                return (0, 0); // Sun or stationary object
+            }
+
+            // Calculate angle based on time and period
+            // angle = (2π * time) / period
+            double angle = (2 * Math.PI * days) / Orbital_period;
+
+            // Calculate position
+            double x = Orbital_radius * Math.Cos(angle);
+            double y = Orbital_radius * Math.Sin(angle);
+
+            // If orbiting another object (like a moon), add parent's position
+            if (OrbitCenter != null)
+            {
+                var parentPos = OrbitCenter.GetPosition(days);
+                x += parentPos.X;
+                y += parentPos.Y;
+            }
+
+            return (x, y);
+        }
+
+        public virtual String GetObjectType()
+        {
+            return "Space Object";
+        }
+
+        public virtual String GetDetailsString(double? atTime = null)
+        {
+            String details = $"{GetObjectType(),-15}: {Name}";
+
+            if (Orbital_radius > 0)
+                details += $" | Orbital radius: {Orbital_radius:N0} km";
+            if (Orbital_period > 0)
+                details += $" | Orbital period: {Orbital_period:F2} days";
+            if (Object_radius > 0)
+                details += $" | Object radius: {Object_radius:N0} km";
+            if (Rotational_period != 0)
+                details += $" | Rotational period: {Rotational_period:F2} days";
+            details += $" | Color: {Object_color}";
+
+            if (atTime.HasValue)
+            {
+                var pos = GetPosition(atTime.Value);
+                details += $"\n                 Position at day {atTime.Value}: ({pos.X:N0}, {pos.Y:N0}) km";
+            }
+
+            return details;
+        }
+
         public virtual void Draw()
         {
             Console.WriteLine(Name);
@@ -159,6 +250,12 @@ namespace SpaceSim
             : base(name, orbital_radius, orbital_period, object_radius, rotational_period, object_color)
         {
         }
+
+        public override String GetObjectType()
+        {
+            return "Star";
+        }
+
         public override void Draw()
         {
             Console.Write("Star         :  " + Name + "  Orbital radius: " + Orbital_radius + "/" + "Orbital period: " + Orbital_period + "/" + "Object radius: " + Object_radius + "km" + "/" + "Rotational period: " + Rotational_period + "/" +  "Object color: " + Object_color);
@@ -171,6 +268,12 @@ namespace SpaceSim
             : base(name, orbital_radius, orbital_period, object_radius, rotational_period, object_color)
         {
         }
+
+        public override String GetObjectType()
+        {
+            return "Planet";
+        }
+
         public override void Draw()
         {
             Console.Write("Planet       :  " + Name + "  Orbital radius: " + Orbital_radius + " / " + "Orbital period: " + Orbital_period + " / " + "Object radius: " + Object_radius + "km / " + "Rotational period: " + Rotational_period + " / " + "Object color: " + Object_color);
@@ -178,12 +281,18 @@ namespace SpaceSim
         }
     }
 
-    public class DwarfPlanet : SpaceObject
+    public class DwarfPlanet : Planet
     {
         public DwarfPlanet(String name, int orbital_radius, double orbital_period, int object_radius, double rotational_period, String object_color)
             : base(name, orbital_radius, orbital_period, object_radius, rotational_period, object_color)
         {
         }
+
+        public override String GetObjectType()
+        {
+            return "Dwarf Planet";
+        }
+
         public override void Draw()
         {
             Console.Write("Dwarf Planet       :  " + Name + "  Orbital radius: " + Orbital_radius + " / " + "Orbital period: " + Orbital_period + " / " + "Object radius: " + Object_radius + "km / " + "Rotational period: " + Rotational_period + " / " + "Object color: " + Object_color);
@@ -225,6 +334,12 @@ namespace SpaceSim
             : base(name, orbital_radius, orbital_period, object_radius, rotational_period, object_color)
         {
         }
+
+        public override String GetObjectType()
+        {
+            return "Asteroid Belt";
+        }
+
         public override void Draw()
         {
             Console.Write("Asteroid Belt:  " + Name + "  Orbital radius: " + Orbital_radius + " / " + "Orbital period: " + Orbital_period + " / " + "Object radius: " + Object_radius + "km / " + "Rotational period: " + Rotational_period + " / " + "Object color: " + Object_color);
@@ -241,6 +356,153 @@ namespace SpaceSim
         {
             Console.Write("Asteroid     :  " + Name + "  Orbital radius: " + Orbital_radius + " / " + "Orbital period: " + Orbital_period + " / " + "Object radius: " + Object_radius + "km / " + "Rotational period: " + Rotational_period + " / " + "Object color: " + Object_color);
             Console.WriteLine();
+        }
+    }
+
+    // Delegate for the DoTick event (Task 7)
+    public delegate void TickEventHandler(object sender, TickEventArgs e);
+
+    // Event arguments containing simulation time
+    public class TickEventArgs : EventArgs
+    {
+        public double CurrentTime { get; set; }  // days since start
+        public double DeltaTime { get; set; }    // time step in days
+
+        public TickEventArgs(double currentTime, double deltaTime)
+        {
+            CurrentTime = currentTime;
+            DeltaTime = deltaTime;
+        }
+    }
+
+    // Central simulation controller with DoTick event (Task 7 requirement)
+    public class SimulationController
+    {
+        private double _currentTime;  // Current simulation time in days
+        private double _speed;        // Simulation speed multiplier
+
+        public double CurrentTime => _currentTime;
+        public double Speed
+        {
+            get => _speed;
+            set => _speed = Math.Max(0.1, Math.Min(value, 100000)); // Clamp between 0.1x and 100000x
+        }
+
+        // The DoTick event - all objects subscribe to this
+        public event TickEventHandler DoTick;
+
+        public SimulationController()
+        {
+            _currentTime = 0;
+            _speed = 1.0; // Real-time by default
+        }
+
+        // Advances simulation and fires the DoTick event
+        public void Tick(double realTimeSeconds)
+        {
+            // Convert real-time to simulation time based on speed
+            double simulationDays = (realTimeSeconds / 86400.0) * _speed; // 86400 seconds in a day
+
+            _currentTime += simulationDays;
+
+            // Fire the DoTick event
+            DoTick?.Invoke(this, new TickEventArgs(_currentTime, simulationDays));
+        }
+
+        public void Reset()
+        {
+            _currentTime = 0;
+        }
+
+        public void SetTime(double days)
+        {
+            _currentTime = days;
+        }
+    }
+
+    // Solar System manager class
+    public class SolarSystem
+    {
+        public Star Sun { get; private set; }
+        public List<Planet> Planets { get; private set; }
+        public List<DwarfPlanet> DwarfPlanets { get; private set; }
+        public List<Moon> Moons { get; private set; }
+        public List<Comet> Comets { get; private set; }
+        public List<Asteroid> Asteroids { get; private set; }
+        public List<Asteroid_belt> AsteroidBelts { get; private set; }
+        public List<SpaceObject> AllObjects { get; private set; }
+
+        public SolarSystem()
+        {
+            Planets = new List<Planet>();
+            DwarfPlanets = new List<DwarfPlanet>();
+            Moons = new List<Moon>();
+            Comets = new List<Comet>();
+            Asteroids = new List<Asteroid>();
+            AsteroidBelts = new List<Asteroid_belt>();
+            AllObjects = new List<SpaceObject>();
+        }
+
+        public void SetSun(Star sun)
+        {
+            Sun = sun;
+            AllObjects.Add(sun);
+        }
+
+        public void AddPlanet(Planet planet)
+        {
+            planet.OrbitCenter = Sun;
+            Planets.Add(planet);
+            AllObjects.Add(planet);
+        }
+
+        public void AddDwarfPlanet(DwarfPlanet dwarf)
+        {
+            dwarf.OrbitCenter = Sun;
+            DwarfPlanets.Add(dwarf);
+            AllObjects.Add(dwarf);
+        }
+
+        public void AddMoon(Moon moon, SpaceObject parent)
+        {
+            moon.OrbitCenter = parent;
+            Moons.Add(moon);
+            AllObjects.Add(moon);
+        }
+
+        public void AddComet(Comet comet)
+        {
+            comet.OrbitCenter = Sun;
+            Comets.Add(comet);
+            AllObjects.Add(comet);
+        }
+
+        public void AddAsteroid(Asteroid asteroid)
+        {
+            asteroid.OrbitCenter = Sun;
+            Asteroids.Add(asteroid);
+            AllObjects.Add(asteroid);
+        }
+
+        public void AddAsteroidBelt(Asteroid_belt belt)
+        {
+            belt.OrbitCenter = Sun;
+            AsteroidBelts.Add(belt);
+            AllObjects.Add(belt);
+        }
+
+        public Planet GetPlanet(string name)
+        {
+            var planet = Planets.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            if (planet != null) return planet;
+
+            // DwarfPlanet inherits from Planet, so we can return it as Planet
+            return (Planet)DwarfPlanets.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public List<Moon> GetMoonsForPlanet(string planetName)
+        {
+            return Moons.Where(m => m.PlanetName.Equals(planetName, StringComparison.OrdinalIgnoreCase)).ToList();
         }
     }
 }
